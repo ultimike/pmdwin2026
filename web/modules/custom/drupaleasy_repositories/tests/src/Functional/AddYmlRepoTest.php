@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\drupaleasy_repositories\Functional;
 
 use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\drupaleasy_repositories\Traits\RepositoryContentTypeTrait;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -13,6 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
  */
 #[Group('drupaleasy_repositories')]
 final class AddYmlRepoTest extends BrowserTestBase {
+  use RepositoryContentTypeTrait;
 
   /**
    * {@inheritdoc}
@@ -24,9 +26,6 @@ final class AddYmlRepoTest extends BrowserTestBase {
    */
   protected static $modules = [
     'drupaleasy_repositories',
-    'node',
-    'link',
-    'user',
   ];
 
   /**
@@ -50,17 +49,78 @@ final class AddYmlRepoTest extends BrowserTestBase {
     // This root user can be accessed via $this->rootUser.
     $admin_user = $this->drupalCreateUser(['configure drupaleasy repositories']);
     $this->drupalLogin($admin_user);
+
+    // Add the repository content type.
+    // $this->createRepositoryContentType();
+    // Add the User Repository URL field.
+    // @phpcs:ignore
+    // $this->createUserRepositoryUrlField();
+
+    // Ensure that the new Repository URL field is visible in the existing
+    // user entity form mode.
+    /** @var \Drupal\Core\Entity\EntityDisplayRepository $entity_display_repository  */
+    $entity_display_repository = \Drupal::service('entity_display.repository');
+    $entity_display_repository->getFormDisplay('user', 'user', 'default')
+      ->setComponent('field_repository_url', ['type' => 'link_default'])
+      ->save();
   }
 
   /**
-   * Test callback.
+   * Test that the settings page can be reached and works as expected.
+   *
+   * This tests that an admin user can access the settings page, select a
+   * plugin to enable, and submit the page successfully.
+   *
+   * @throws \Behat\Mink\Exception\ExpectationException
    */
   #[Test]
-  public function testSomething(): void {
-    $admin_user = $this->drupalCreateUser(['administer site configuration']);
-    $this->drupalLogin($admin_user);
-    $this->drupalGet('/admin/config/system/site-information');
-    $this->assertSession()->elementExists('xpath', '//h1[text() = "Basic site settings"]');
+  public function testSettingsPage(): void {
+    // Get a handle on the browsing session from the setup().
+    $session = $this->assertSession();
+
+    // Navigate to the DrupalEasy Repositories Settings page and confirm we can
+    // reach it.
+    $this->drupalGet('/admin/config/services/repositories');
+    $session->statusCodeEquals(200);
+
+    // Select the "Yml remote" checkbox.
+    $edit = [
+      'edit-repositories-plugins-yml-remote' => 'yml_remote',
+    ];
+
+    // Submit the form.
+    $this->submitForm($edit, 'Save configuration');
+
+    // Ensure no errors.
+    $session->statusCodeEquals(200);
+    $session->responseContains('The configuration options have been saved.');
+
+    // Ensure that the proper checkbox is actually checked.
+    $session->checkboxChecked('edit-repositories-plugins-yml-remote');
+    $session->checkboxNotChecked('edit-repositories-plugins-github');
+  }
+
+  /**
+   * Test that the settings page cannot be reached without permission.
+   *
+   * @return void
+   *   Returns nothing.
+   *
+   * @throws \Behat\Mink\Exception\ExpectationException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  #[Test]
+  public function testUnprivilegedSettingsPage(): void {
+    // Get a handle on the browsing session from the setup().
+    $session = $this->assertSession();
+
+    // Create and login as an unprivileged user.
+    $authenticated_user = $this->drupalCreateUser(['access content']);
+    $this->drupalLogin($authenticated_user);
+
+    // Navigate to the DrupalEasy Repositories Settings page.
+    $this->drupalGet('/admin/config/services/repositories');
+    $session->statusCodeEquals(403);
   }
 
 }
