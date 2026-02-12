@@ -123,4 +123,63 @@ final class AddYmlRepoTest extends BrowserTestBase {
     $session->statusCodeEquals(403);
   }
 
+  /**
+   * End-to-end test of adding a yml_remote repository.
+   *
+   * @throws \Behat\Mink\Exception\ExpectationException
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  #[Test]
+  public function testAddYmlRepo(): void {
+    // Create and login as an unprivileged user.
+    $user = $this->drupalCreateUser(['access content']);
+    $this->drupalLogin($user);
+
+    // Get a handle on the browsing session.
+    $session = $this->assertSession();
+
+    // Navigate to user profile edit page.
+    $this->drupalGet('/user/' . $user->id() . '/edit');
+    $session->statusCodeEquals(200);
+
+    // Get the full path to the batman-repo.yml file.
+    /** @var \Drupal\Core\Extension\ModuleHandlerInterface $module_handler */
+    $module_handler = \Drupal::service('module_handler');
+    $module = $module_handler->getModule('drupaleasy_repositories');
+    $module_full_path = \Drupal::request()->getUri() . $module->getPath();
+
+    // Add the .yml file to the proper field.
+    $edit = [
+      'edit-field-repository-url-0-uri' => $module_full_path . '/tests/assets/batman-repo.yml',
+    ];
+
+    // Submit the form.
+    $this->submitForm($edit, 'Save');
+
+    // Ensure no errors.
+    $session->statusCodeEquals(200);
+    $session->responseContains('The changes have been saved.');
+
+    // Find the new repository node.
+    $query = \Drupal::entityQuery('node');
+    $query->condition('type', 'repository');
+    $results = $query->accessCheck(FALSE)->execute();
+    $session->assert(count($results) === 1, 'Either 0 or more than 1 repository nodes were found.');
+
+    // Get the repository node that was just created.
+    $entity_type_manager = \Drupal::entityTypeManager();
+    $node_storage = $entity_type_manager->getStorage('node');
+    $node = $node_storage->load(reset($results));
+
+    // Check repository node values.
+    $session->assert($node->field_machine_name->value === 'batman-repo', 'Machine name does not match.');
+    $session->assert($node->field_source->value === 'yml_remote', 'Source does not match.');
+    $session->assert($node->title->value === 'The Batman repository', 'Title does not match.');
+    $session->assert($node->field_description->value === 'This is where Batman keeps all of his crime-fighting code.', 'Description does not match.');
+    // @todo check to ensure === works for number of open issues.
+    $session->assert($node->field_number_of_open_issues->value === 6, 'Machine name does not match.');
+  }
+
 }
