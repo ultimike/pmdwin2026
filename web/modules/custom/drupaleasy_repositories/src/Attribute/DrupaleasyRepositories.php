@@ -22,7 +22,9 @@ final class DrupaleasyRepositories extends AttributeBase {
    *   identical to group or prefixed with the group. E.g. if the group is "foo"
    *   the ID must be either "foo" or "foo:bar".
    * @param \Drupal\Core\StringTranslation\TranslatableMarkup|null $label
-   *   (optional) The human-readable name of the plugin.
+   *   The human-readable name of the plugin.
+   * @param \Drupal\Core\StringTranslation\TranslatableMarkup|null $url_help_text
+   *   The URL help text displayed to teh user for the plugin.
    * @param \Drupal\Core\StringTranslation\TranslatableMarkup|null $description
    *   (optional) A brief description of the plugin.
    * @param class-string|null $deriver
@@ -31,6 +33,7 @@ final class DrupaleasyRepositories extends AttributeBase {
   public function __construct(
     public readonly string $id,
     public readonly ?TranslatableMarkup $label,
+    public readonly ?TranslatableMarkup $url_help_text,
     public readonly ?TranslatableMarkup $description = NULL,
     public readonly ?string $deriver = NULL,
   ) {}

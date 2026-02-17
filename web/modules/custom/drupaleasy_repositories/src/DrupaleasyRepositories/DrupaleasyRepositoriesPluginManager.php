@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\drupaleasy_repositories;
+namespace Drupal\drupaleasy_repositories\DrupaleasyRepositories;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -15,7 +15,15 @@ use Drupal\drupaleasy_repositories\Attribute\DrupaleasyRepositories;
 final class DrupaleasyRepositoriesPluginManager extends DefaultPluginManager {
 
   /**
-   * Constructs the object.
+   * Constructs a DrupaleasyRepositoriesPluginManager object.
+   *
+   * @param \Traversable<mixed> $namespaces
+   *   An object that implements \Traversable which contains the root paths
+   *   keyed by the corresponding namespace to look for plugin.
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache_backend
+   *   Cache backend instance to use.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler service.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
     parent::__construct('Plugin/DrupaleasyRepositories', $namespaces, $module_handler, DrupaleasyRepositoriesInterface::class, DrupaleasyRepositories::class);

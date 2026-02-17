@@ -26,8 +26,8 @@
     <!-- Do not limit the amount of memory tests take to run. -->
     <ini name="memory_limit" value="-1"/>
     <!-- Example SIMPLETEST_BASE_URL value: http://localhost -->
-    <env name="SIMPLETEST_BASE_URL" value="http://appserver.pmdwinter2026.internal"/>
-<!--    <env name="SIMPLETEST_BASE_URL" value="http://localhost"/>-->
+    <!-- <env name="SIMPLETEST_BASE_URL" value="http://appserver.pmdwinter2026.internal"/> -->
+   <env name="SIMPLETEST_BASE_URL" value="http://localhost"/>
     <!-- Example SIMPLETEST_DB value: mysql://username:password@localhost/database_name#table_prefix -->
     <env name="SIMPLETEST_DB" value="sqlite://localhost//dev/shm/test.sqlite"/>
 <!--    <env name="SIMPLETEST_DB" value="mysql://drupal11:drupal11@database:3306/drupal11#test"/>-->
@@ -37,8 +37,8 @@
      you can set the base URL used in the browser test output links to something
      reachable from your host machine here. This will allow you to follow them
      directly and view the output. -->
-<!--    <env name="BROWSERTEST_OUTPUT_BASE_URL" value="http://pmdwinter2026.ddev.site"/>-->
-    <env name="BROWSERTEST_OUTPUT_BASE_URL" value="http://pmd-winter-2026.lndo.site"/>
+   <env name="BROWSERTEST_OUTPUT_BASE_URL" value="http://pmdwinter2026.ddev.site"/>
+    <!-- <env name="BROWSERTEST_OUTPUT_BASE_URL" value="http://pmd-winter-2026.lndo.site"/> -->
     <!-- The environment variable SYMFONY_DEPRECATIONS_HELPER is used to configure
       the behavior of the deprecation tests.
       Drupal core's testing framework is setting this variable to its defaults.
@@ -70,7 +70,7 @@
         overridden by the value set for the "BROWSERTEST_OUTPUT_DIRECTORY"
         environment variable.
       -->
-      <parameter name="outputDirectory" value="web/sites/simpletest/browser_output"/>
+      <!-- <parameter name="outputDirectory" value="web/sites/simpletest/browser_output"/> -->
       <!-- By default browser tests print the individual links in the test run
         report. To avoid overcrowding the output in CI environments, you can
         set the "verbose" parameter or the "BROWSERTEST_OUTPUT_VERBOSE"
