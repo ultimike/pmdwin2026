@@ -40,7 +40,7 @@ final class YmlRemote extends DrupaleasyRepositoriesPluginBase {
       $repo_metadata = reset($repo_info);
       $label = $repo_metadata['label'];
       $description = $repo_metadata['description'];
-      $number_of_open_issues = $repo_metadata['issues'];
+      $number_of_open_issues = $repo_metadata['num_open_issues'];
       return $this->mapToCommonFormat($machine_name, $label, $description, $number_of_open_issues, $uri);
     }
     return [];
