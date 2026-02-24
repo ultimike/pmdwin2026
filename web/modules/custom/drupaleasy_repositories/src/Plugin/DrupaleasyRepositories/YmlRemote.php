@@ -15,8 +15,8 @@ use Drupal\Component\Serialization\Yaml;
 #[DrupaleasyRepositories(
   id: 'yml_remote',
   label: new TranslatableMarkup('Remote .yml file'),
-  description: new TranslatableMarkup('Remote .yml file that includes repository metadata.'),
   url_help_text: new TranslatableMarkup('https://anything.anything/anything/anything.yml (or http or yaml.)'),
+  description: new TranslatableMarkup('Remote .yml file that includes repository metadata.'),
 )]
 final class YmlRemote extends DrupaleasyRepositoriesPluginBase {
 
