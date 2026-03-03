@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Render\Element;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;
+use Drupal\user\Entity\User;
 
 /**
  * Hook implementations for drupal.
@@ -30,6 +31,7 @@ class DrupaleasyRepositoriesHooks {
     }
 
     $form['#validate'][] = [$this, 'urlValidate'];
+    $form['actions']['submit']['#submit'][] = [$this, 'urlSubmit'];
   }
 
   /**
@@ -64,8 +66,6 @@ class DrupaleasyRepositoriesHooks {
    *   The form element being validated.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
-   *
-   * @return void
    */
   public function urlValidate(array &$element, FormStateInterface $form_state): void {
     /** @var \Drupal\Core\Entity\EntityFormInterface $theFormObject */
@@ -81,6 +81,21 @@ class DrupaleasyRepositoriesHooks {
         'field_repository_url',
         $error,
       );
+    }
+  }
+
+  /**
+   * Helper method when submitting repository URLs.
+   *
+   * @param array $element
+   *   The form element being validated.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   */
+  public function urlSubmit(array &$element, FormStateInterface $form_state): void {
+    $account = User::load($form_state->getValue('uid'));
+    if (!is_null($account)) {
+      $this->repositoryService->updateRepositories($account);
     }
   }
 

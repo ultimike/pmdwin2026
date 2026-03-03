@@ -7,6 +7,8 @@ namespace Drupal\drupaleasy_repositories;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
@@ -25,11 +27,14 @@ final class DrupaleasyRepositoriesService {
    *   The Drupal core configuration factory.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The Drupal core logger factory.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The Drupal core entity type manager service.
    */
   public function __construct(
     protected PluginManagerInterface $pluginManagerDrupaleasyRepositories,
     protected ConfigFactoryInterface $configFactory,
     protected LoggerChannelFactoryInterface $loggerFactory,
+    protected EntityTypeManagerInterface $entityTypeManager,
   ) {}
 
   /**
@@ -127,6 +132,70 @@ final class DrupaleasyRepositoriesService {
     }
     // No errors found.
     return '';
+  }
+
+  /**
+   * Update the repository nodes for a given user.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $account
+   *   The user.
+   *
+   * @return bool
+   *   TRUE on success.
+   */
+  public function updateRepositories(EntityInterface $account): bool {
+    $repos_metadata = [];
+
+    // Get IDs all DrupaleasyRepository plugins (enabled or not).
+    $repository_plugin_ids = $this->configFactory->get('drupaleasy_repositories.settings')->get('repositories_plugins') ?? [];
+
+    // Instantiate each enabled DrupaleasyRepository plugin.
+    foreach ($repository_plugin_ids as $repository_plugin_id) {
+      if (!empty($repository_plugin_id)) {
+        /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesInterface $repository_plugin */
+        $repository_plugin = $this->pluginManagerDrupaleasyRepositories->createInstance($repository_plugin_id);
+        foreach ($account->field_repository_url ?? [] as $url) {
+          // Confirm the current URL can be handled by the current plugin.
+          if ($repository_plugin->validate($url->uri)) {
+            // Get the repository metadata.
+            if ($repo_metadata = $repository_plugin->getRepo($url->uri)) {
+              $repos_metadata += $repo_metadata;
+            }
+          }
+        }
+      }
+    }
+
+    return $this->updateRepositoryNodes($repos_metadata, $account);
+  }
+
+  /**
+   * Updates repository nodes for a given user.
+   *
+   * @param array<string, array<string, string|int>> $repos_info
+   *   The repository metadata.
+   * @param \Drupal\Core\Entity\EntityInterface $account
+   *   The user.
+   *
+   * @return bool
+   *   TRUE if successful.
+   */
+  protected function updateRepositoryNodes(array $repos_info, EntityInterface $account): bool {
+    if (!$repos_info) {
+      return TRUE;
+    }
+
+    // Prepare the storage and query stuff.
+    /** @var \Drupal\node\NodeStorageInterface $node_storage */
+    $node_storage = $this->entityTypeManager->getStorage('node');
+
+    // Loop around all repositories.
+      // Calculate the hash value.
+      // Look for repository nodes from the same user with the same machine name.
+      // Add or update?
+
+    // Look for node repositories that does not have data in $repos_info and delete them.
+    return TRUE;
   }
 
 }

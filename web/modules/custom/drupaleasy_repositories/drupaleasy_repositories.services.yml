@@ -8,7 +8,7 @@ services:
     # The logger.factory dependency was added by Mike on Feb 24 on-the-fly as an
     # example. This dependency is not in the handout. Additional dependencies to
     # be added to this service class should be added after it.
-    arguments: ['@plugin.manager.drupaleasy_repositories', '@config.factory', '@logger.factory']
+    arguments: ['@plugin.manager.drupaleasy_repositories', '@config.factory', '@logger.factory', '@entity_type.manager']
   Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService: '@drupaleasy_repositories.service'
 
   Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks:
