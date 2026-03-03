@@ -9,8 +9,8 @@ services:
     # example. This dependency is not in the handout. Additional dependencies to
     # be added to this service class should be added after it.
     arguments: ['@plugin.manager.drupaleasy_repositories', '@config.factory', '@logger.factory']
-    Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService:
-      '@drupaleasy_repositories.service'
-    Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks:
-      class: Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks
-      autowire: TRUE
+  Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService: '@drupaleasy_repositories.service'
+
+  Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks:
+    class: Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks
+    autowire: TRUE
