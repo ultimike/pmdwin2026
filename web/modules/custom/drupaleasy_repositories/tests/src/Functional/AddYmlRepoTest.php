@@ -97,7 +97,7 @@ final class AddYmlRepoTest extends BrowserTestBase {
 
     // Ensure that the proper checkbox is actually checked.
     $session->checkboxChecked('edit-repositories-plugins-yml-remote');
-    //$session->checkboxNotChecked('edit-repositories-plugins-github');
+    // $session->checkboxNotChecked('edit-repositories-plugins-github');
   }
 
   /**
@@ -179,7 +179,66 @@ final class AddYmlRepoTest extends BrowserTestBase {
     $session->assert($node->title->value === 'The Batman repository', 'Title does not match.');
     $session->assert($node->field_description->value === 'This is where Batman keeps all of his crime-fighting code.', 'Description does not match.');
     // @todo check to ensure === works for number of open issues.
-    $session->assert($node->field_number_of_open_issues->value === 6, 'Machine name does not match.');
+    $session->assert((int) $node->field_number_of_open_issues->value === 6, 'Number of open issues does not match.');
+  }
+
+  /**
+   * End-to-end test of removing a yml_remote repository.
+   */
+  #[Test]
+  public function testRemoveYmlRepo(): void {
+    // Create and login as an unprivileged user.
+    $user = $this->drupalCreateUser(['access content']);
+    $this->drupalLogin($user);
+
+    // Get a handle on the browsing session.
+    $session = $this->assertSession();
+
+    // Navigate to user profile edit page.
+    $this->drupalGet('/user/' . $user->id() . '/edit');
+    $session->statusCodeEquals(200);
+
+    // Get the full path to the batman-repo.yml file.
+    /** @var \Drupal\Core\Extension\ModuleHandlerInterface $module_handler */
+    $module_handler = \Drupal::service('module_handler');
+    $module = $module_handler->getModule('drupaleasy_repositories');
+    $module_full_path = \Drupal::request()->getUri() . $module->getPath();
+
+    // Add the .yml file to the proper field.
+    $edit = [
+      'edit-field-repository-url-0-uri' => $module_full_path . '/tests/assets/batman-repo.yml',
+    ];
+
+    // Submit the form.
+    $this->submitForm($edit, 'Save');
+
+    // Ensure no errors.
+    $session->statusCodeEquals(200);
+    $session->responseContains('The changes have been saved.');
+
+    // Find the new repository node.
+    $query = \Drupal::entityQuery('node');
+    $query->condition('type', 'repository');
+    $results = $query->accessCheck(FALSE)->execute();
+    $session->assert(count($results) === 1, 'Either 0 or more than 1 repository nodes were found.');
+
+    // Add the .yml file to the proper field.
+    $edit = [
+      'edit-field-repository-url-0-uri' => '',
+    ];
+
+    // Submit the form.
+    $this->submitForm($edit, 'Save');
+
+    // Ensure no errors.
+    $session->statusCodeEquals(200);
+    $session->responseContains('The changes have been saved.');
+
+    // Confirm there are no repository nodes.
+    $query = \Drupal::entityQuery('node');
+    $query->condition('type', 'repository');
+    $results = $query->accessCheck(FALSE)->execute();
+    $session->assert(count($results) === 0, 'The repository node did not get removed.');
   }
 
 }

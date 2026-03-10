@@ -29,12 +29,15 @@ final class DrupaleasyRepositoriesService {
    *   The Drupal core logger factory.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The Drupal core entity type manager service.
+   * @param bool $dryRun
+   *   When TRUE, do not save or delete nodes.
    */
   public function __construct(
     protected PluginManagerInterface $pluginManagerDrupaleasyRepositories,
     protected ConfigFactoryInterface $configFactory,
     protected LoggerChannelFactoryInterface $loggerFactory,
     protected EntityTypeManagerInterface $entityTypeManager,
+    protected bool $dryRun = FALSE,
   ) {}
 
   /**
@@ -80,7 +83,7 @@ final class DrupaleasyRepositoriesService {
    * Validate the URLs are valid based on the enabled plugins and ensure they
    * haven't been added by another user.
    *
-   * @param array $urls
+   * @param array<mixed> $urls
    *   The urls to be validated.
    * @param int $uid
    *   The user id of the user submitting the URLs.
@@ -166,7 +169,9 @@ final class DrupaleasyRepositoriesService {
       }
     }
 
-    return $this->updateRepositoryNodes($repos_metadata, $account);
+    $repos_updated = $this->updateRepositoryNodes($repos_metadata, $account);
+    $repos_deleted = $this->deleteRepositoryNodes($repos_metadata, $account);
+    return $repos_updated || $repos_deleted;
   }
 
   /**
@@ -190,11 +195,92 @@ final class DrupaleasyRepositoriesService {
     $node_storage = $this->entityTypeManager->getStorage('node');
 
     // Loop around all repositories.
+    foreach ($repos_info as $key => $repo_info) {
       // Calculate the hash value.
-      // Look for repository nodes from the same user with the same machine name.
-      // Add or update?
+      $hash = md5(serialize($repo_info));
 
-    // Look for node repositories that does not have data in $repos_info and delete them.
+      // Find repository nodes from the same user with the same machine name.
+      $query = $node_storage->getQuery();
+      $query->condition('type', 'repository')
+        ->condition('uid', $account->id())
+        ->condition('field_machine_name', $key)
+        ->condition('field_source', $repo_info['source'])
+        ->accessCheck(FALSE);
+      $results = $query->execute();
+
+      // Add or update.
+      if ($results) {
+        // Check if we need to update.
+        /** @var \Drupal\node\NodeInterface $node */
+        $node = $node_storage->load(reset($results));
+        if ($hash != $node->get('field_hash')->value) {
+          // Hash has changed, so we need to update the node.
+          $node->setTitle($repo_info['label']);
+          $node->set('field_description', $repo_info['description']);
+          $node->set('field_machine_name', $key);
+          $node->set('field_number_of_open_issues', $repo_info['num_open_issues']);
+          $node->set('field_source', $repo_info['source']);
+          $node->set('field_url', $repo_info['url']);
+          $node->set('field_hash', $hash);
+          if (!$this->dryRun) {
+            $node->save();
+          }
+        }
+      }
+      else {
+        // Add new repository node.
+        $node = $node_storage->create([
+          'type' => 'repository',
+          'uid' => $account->id(),
+          'title' => $repo_info['label'],
+          'field_description' => $repo_info['description'],
+          'field_machine_name' => $key,
+          'field_number_of_open_issues' => $repo_info['num_open_issues'],
+          'field_source' => $repo_info['source'],
+          'field_url' => $repo_info['url'],
+          'field_hash' => $hash,
+        ]);
+        if (!$this->dryRun) {
+          $node->save();
+        }
+      }
+
+      return TRUE;
+    }
+  }
+
+  /**
+   * Deletes repository nodes that have been removed from a user profile.
+   *
+   * @param array<string, array<string, string|int>> $repos_info
+   *   The repository metadata.
+   * @param \Drupal\Core\Entity\EntityInterface $account
+   *   The user.
+   *
+   * @return bool
+   *   TRUE if successful.
+   */
+  protected function deleteRepositoryNodes(array $repos_info, EntityInterface $account): bool {
+    /** @var \Drupal\node\NodeStorageInterface $node_storage */
+    $node_storage = $this->entityTypeManager->getStorage('node');
+
+    $query = $node_storage->getQuery();
+    $query->condition('type', 'repository')
+      ->condition('uid', $account->id())
+      ->accessCheck(FALSE);
+    if ($repos_info) {
+      $query->condition('field_machine_name', array_keys($repos_info), 'NOT IN');
+    }
+    $results = $query->execute();
+
+    if ($results) {
+      $nodes = $node_storage->loadMultiple($results);
+      foreach ($nodes as $node) {
+        if (!$this->dryRun) {
+          $node->delete();
+        }
+      }
+    }
     return TRUE;
   }
 

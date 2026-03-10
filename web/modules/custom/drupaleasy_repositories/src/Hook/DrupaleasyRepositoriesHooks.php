@@ -37,14 +37,14 @@ class DrupaleasyRepositoriesHooks {
   /**
    * Custom function to populate Repository URL descriptions.
    *
-   * @param array $element
+   * @param array<mixed> $element
    *   A render element.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
-   * @param array $form
+   * @param array<mixed> $form
    *   The form array.
    *
-   * @return array
+   * @return array<mixed>
    *   A render element.
    */
   public function urlHelpText(array $element, FormStateInterface $form_state, array &$form): array {
@@ -62,7 +62,7 @@ class DrupaleasyRepositoriesHooks {
   /**
    * Helper method to validate repository URLs.
    *
-   * @param array $element
+   * @param array<mixed> $element
    *   The form element being validated.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
@@ -87,7 +87,7 @@ class DrupaleasyRepositoriesHooks {
   /**
    * Helper method when submitting repository URLs.
    *
-   * @param array $element
+   * @param array<mixed> $element
    *   The form element being validated.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
