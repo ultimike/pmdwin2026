@@ -121,6 +121,15 @@ final class DrupaleasyRepositoriesService {
           foreach ($repository_plugins as $repository_plugin) {
             if ($repository_plugin->validate($uri)) {
               $is_valid_url = TRUE;
+              $repo_metadata = $repository_plugin->getRepo($uri);
+              if ($repo_metadata) {
+                if (!$this->isUnique($repo_metadata, $uid)) {
+                  $errors[] = $this->t('The repository at the url %uri has been added by another user.', ['%uri' => $uri]);
+                }
+              }
+              else {
+                $errors[] = $this->t('The repository at the url %uri was not found.', ['%uri' => $uri]);
+              }
             }
           }
           if (!$is_valid_url) {
@@ -135,6 +144,32 @@ final class DrupaleasyRepositoriesService {
     }
     // No errors found.
     return '';
+  }
+
+  /**
+   * Check to see if a given repository is unique to the site.
+   *
+   * @param array<string, array<string, string|int>> $repo_info
+   *   The repository metadata to check.
+   * @param int $uid
+   *   The user ID of the form submitter.
+   *
+   * @return bool
+   *   TRUE if unique.
+   */
+  protected function isUnique(array $repo_info, int $uid): bool {
+    $node_storage = $this->entityTypeManager->getStorage('node');
+
+    $repo_metadata = array_pop($repo_info);
+
+    $query = $node_storage->getQuery();
+    $results = $query->condition('type', 'repository')
+      ->condition('field_url', $repo_metadata['url'])
+      ->condition('uid', $uid, 'NOT IN')
+      ->accessCheck(FALSE)
+      ->execute();
+
+    return !count($results);
   }
 
   /**

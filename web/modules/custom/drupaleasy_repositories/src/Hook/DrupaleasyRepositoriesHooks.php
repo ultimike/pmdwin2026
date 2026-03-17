@@ -6,7 +6,7 @@ use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Render\Element;
-use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;
+// Use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;.
 use Drupal\user\Entity\User;
 
 /**
@@ -15,9 +15,9 @@ use Drupal\user\Entity\User;
 class DrupaleasyRepositoriesHooks {
   use StringTranslationTrait;
 
-  public function __construct(
-    protected readonly DrupaleasyRepositoriesService $repositoryService,
-  ) {}
+  // Public function __construct(
+  //   protected readonly DrupaleasyRepositoriesService $repositoryService,
+  // ) {}.
 
   /**
    * Implements hook_form_FORM_ID_alter().
@@ -26,12 +26,12 @@ class DrupaleasyRepositoriesHooks {
   public function formUserFormAlter(array &$form, FormStateInterface $form_state): void {
     if (!empty($form['field_repository_url']['widget'])) {
       foreach (Element::children($form['field_repository_url']['widget']) as $el_index) {
-        $form['field_repository_url']['widget'][$el_index]['#process'][] = [$this, 'urlHelpText'];
+        $form['field_repository_url']['widget'][$el_index]['#process'][] = [static::class, 'urlHelpText'];
       }
     }
 
-    $form['#validate'][] = [$this, 'urlValidate'];
-    $form['actions']['submit']['#submit'][] = [$this, 'urlSubmit'];
+    $form['#validate'][] = [static::class, 'urlValidate'];
+    $form['actions']['submit']['#submit'][] = [static::class, 'urlSubmit'];
   }
 
   /**
@@ -47,13 +47,16 @@ class DrupaleasyRepositoriesHooks {
    * @return array<mixed>
    *   A render element.
    */
-  public function urlHelpText(array $element, FormStateInterface $form_state, array &$form): array {
-    $help_text = $this->repositoryService->getValidatorHelpText();
+  public static function urlHelpText(array $element, FormStateInterface $form_state, array &$form): array {
+    // $help_text = $this->repositoryService->getValidatorHelpText();
+    /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService $repository_service */
+    $repository_service = \Drupal::service('drupaleasy_repositories.service');
+    $help_text = $repository_service->getValidatorHelpText();
     if ($help_text) {
-      $element['uri']['#description'] = $this->t('Valid URLs are: %help_text', ['%help_text' => $help_text]);
+      $element['uri']['#description'] = t('Valid URLs are: %help_text', ['%help_text' => $help_text]);
     }
     else {
-      $element['uri']['#description'] = $this->t('No repository plugins are enabled. Contact site administrator.');
+      $element['uri']['#description'] = t('No repository plugins are enabled. Contact site administrator.');
     }
     $element['uri']['#description_display'] = 'before';
     return $element;
@@ -67,14 +70,17 @@ class DrupaleasyRepositoriesHooks {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
-  public function urlValidate(array &$element, FormStateInterface $form_state): void {
+  public static function urlValidate(array &$element, FormStateInterface $form_state): void {
+    /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService $repository_service */
+    $repository_service = \Drupal::service('drupaleasy_repositories.service');
+
     /** @var \Drupal\Core\Entity\EntityFormInterface $theFormObject */
     $theFormObject = $form_state->getFormObject();
     $uid = $theFormObject->getEntity()->id();
     // If the user doesn't exist, then use the anonymous user ID (0).
     $uid = is_null($uid) ? 0 : $uid;
 
-    $error = $this->repositoryService->validateRepositoryUrls($form_state->getValue('field_repository_url'), $uid);
+    $error = $repository_service->validateRepositoryUrls($form_state->getValue('field_repository_url'), $uid);
 
     if ($error) {
       $form_state->setErrorByName(
@@ -92,10 +98,12 @@ class DrupaleasyRepositoriesHooks {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
-  public function urlSubmit(array &$element, FormStateInterface $form_state): void {
+  public static function urlSubmit(array &$element, FormStateInterface $form_state): void {
+    /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService $repository_service */
+    $repository_service = \Drupal::service('drupaleasy_repositories.service');
     $account = User::load($form_state->getValue('uid'));
     if (!is_null($account)) {
-      $this->repositoryService->updateRepositories($account);
+      $repository_service->updateRepositories($account);
     }
   }
 

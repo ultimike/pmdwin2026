@@ -130,4 +130,39 @@ trait RepositoryContentTypeTrait {
     ])->save();
   }
 
+  /**
+   * Helper function to return sample repository metadata.
+   *
+   * @param string $repo_name
+   *   The machine name for the repository to get.
+   *
+   * @return array<string, array<string, string|int>>
+   *   The repository metadata.
+   */
+  protected function getTestRepo(string $repo_name): array {
+    switch ($repo_name) {
+      case 'wonder-woman-repository':
+        return [
+          'wonder-woman-repository' => [
+            'label' => 'The Wonder Woman repository',
+            'description' => 'This is where Wonder Woman keeps all of his crime-fighting code',
+            'num_open_issues' => 1,
+            'source' => 'yml_remote',
+            'url' => 'http://example.com/ww-repo.yml',
+          ],
+        ];
+
+      default:
+        return [
+          'aquaman-repository' => [
+            'label' => 'The Aquaman repository',
+            'description' => 'This is where Aquaman keeps all of his crime-fighting code',
+            'num_open_issues' => 6,
+            'source' => 'yml_remote',
+            'url' => 'http://example.com/aquaman-repo.yml',
+          ],
+        ];
+    }
+  }
+
 }
