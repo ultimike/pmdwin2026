@@ -279,9 +279,8 @@ final class DrupaleasyRepositoriesService {
           $node->save();
         }
       }
-
-      return TRUE;
     }
+    return TRUE;
   }
 
   /**

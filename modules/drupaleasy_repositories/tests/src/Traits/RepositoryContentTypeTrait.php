@@ -142,25 +142,29 @@ trait RepositoryContentTypeTrait {
   protected function getTestRepo(string $repo_name): array {
     switch ($repo_name) {
       case 'wonder-woman-repository':
+        $repo_info = [
+          'label' => 'The Wonder Woman repository',
+          'description' => 'This is where Wonder Woman keeps all of her crime-fighting code',
+          'num_open_issues' => 1,
+          'source' => 'yml_remote',
+          'url' => 'http://example.com/ww-repo.yml',
+        ];
+        $repo_info['hash'] = md5(serialize($repo_info));
         return [
-          'wonder-woman-repository' => [
-            'label' => 'The Wonder Woman repository',
-            'description' => 'This is where Wonder Woman keeps all of his crime-fighting code',
-            'num_open_issues' => 1,
-            'source' => 'yml_remote',
-            'url' => 'http://example.com/ww-repo.yml',
-          ],
+          'wonder-woman-repository' => $repo_info,
         ];
 
       default:
+        $repo_info = [
+          'label' => 'The Aquaman repository',
+          'description' => 'This is where Aquaman keeps all of his crime-fighting code',
+          'num_open_issues' => 6,
+          'source' => 'yml_remote',
+          'url' => 'http://example.com/aquaman-repo.yml',
+        ];
+        $repo_info['hash'] = md5(serialize($repo_info));
         return [
-          'aquaman-repository' => [
-            'label' => 'The Aquaman repository',
-            'description' => 'This is where Aquaman keeps all of his crime-fighting code',
-            'num_open_issues' => 6,
-            'source' => 'yml_remote',
-            'url' => 'http://example.com/aquaman-repo.yml',
-          ],
+          'aquaman-repository' => $repo_info,
         ];
     }
   }

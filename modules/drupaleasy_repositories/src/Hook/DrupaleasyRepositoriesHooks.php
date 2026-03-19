@@ -15,10 +15,6 @@ use Drupal\user\Entity\User;
 class DrupaleasyRepositoriesHooks {
   use StringTranslationTrait;
 
-  // Public function __construct(
-  //   protected readonly DrupaleasyRepositoriesService $repositoryService,
-  // ) {}.
-
   /**
    * Implements hook_form_FORM_ID_alter().
    */
@@ -48,7 +44,6 @@ class DrupaleasyRepositoriesHooks {
    *   A render element.
    */
   public static function urlHelpText(array $element, FormStateInterface $form_state, array &$form): array {
-    // $help_text = $this->repositoryService->getValidatorHelpText();
     /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService $repository_service */
     $repository_service = \Drupal::service('drupaleasy_repositories.service');
     $help_text = $repository_service->getValidatorHelpText();
