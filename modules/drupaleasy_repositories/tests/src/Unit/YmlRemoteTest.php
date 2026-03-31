@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupaleasy_repositories\Unit;
 
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\drupaleasy_repositories\Plugin\DrupaleasyRepositories\YmlRemote;
+use Drupal\key\KeyRepositoryInterface;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Test description.
@@ -23,11 +26,29 @@ final class YmlRemoteTest extends UnitTestCase {
   protected YmlRemote $ymlRemote;
 
   /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface|\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected MessengerInterface|MockObject $messenger;
+
+  /**
+   * The Key repository service.
+   *
+   * @var \Drupal\key\KeyRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected KeyRepositoryInterface|MockObject $keyRepository;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
-    $this->ymlRemote = new YmlRemote([], 'yml_remote', []);
+
+    $this->messenger = $this->createMock(MessengerInterface::class);
+    $this->keyRepository = $this->createMock(KeyRepositoryInterface::class);
+
+    $this->ymlRemote = new YmlRemote([], 'yml_remote', [], $this->messenger, $this->keyRepository);
   }
 
   /**

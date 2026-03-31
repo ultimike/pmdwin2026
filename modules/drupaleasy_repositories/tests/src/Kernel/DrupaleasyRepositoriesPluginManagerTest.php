@@ -17,7 +17,10 @@ final class DrupaleasyRepositoriesPluginManagerTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['drupaleasy_repositories'];
+  protected static $modules = [
+    'drupaleasy_repositories',
+    'key',
+  ];
 
   /**
    * Our plugin manager.

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupaleasy_repositories\Kernel;
 
-use Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesPluginManager;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;
-use Drupal\drupaleasy_repositories\Plugin\DrupaleasyRepositories\YmlRemote;
 use Drupal\KernelTests\KernelTestBase;
 use PHPUnit\Framework\Attributes\Group;
 use Drupal\Tests\drupaleasy_repositories\Traits\RepositoryContentTypeTrait;
@@ -32,6 +30,7 @@ final class DrupaleasyRepositoriesServiceTest extends KernelTestBase {
     'user',
     'link',
     'text',
+    'key',
   ];
 
   /**
@@ -40,20 +39,6 @@ final class DrupaleasyRepositoriesServiceTest extends KernelTestBase {
    * @var \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService
    */
   protected DrupaleasyRepositoriesService $drupaleasyRepositoriesService;
-
-  /**
-   * The DrupalEasy repositories plugin manager.
-   *
-   * @var \Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesPluginManager
-   */
-  protected DrupaleasyRepositoriesPluginManager $manager;
-
-  /**
-   * The Yml remote plugin.
-   *
-   * @var \Drupal\drupaleasy_repositories\Plugin\DrupaleasyRepositories\YmlRemote
-   */
-  protected YmlRemote $ymlRemote;
 
   /**
    * The admin user property.
@@ -68,14 +53,13 @@ final class DrupaleasyRepositoriesServiceTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
     $this->drupaleasyRepositoriesService = $this->container->get('drupaleasy_repositories.service');
-    // $this->manager = $this->container->get('plugin.manager.drupaleasy_repositories');
-    // $this->ymlRemote = $this->manager->createInstance('yml_remote');
+
+    $this->createRepositoryContentType();
+
     // Enable the .yml repository plugin.
     $config = $this->config('drupaleasy_repositories.settings');
     $config->set('repositories_plugins', ['yml_remote' => 'yml_remote']);
     $config->save();
-
-    $this->createRepositoryContentType();
 
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');
