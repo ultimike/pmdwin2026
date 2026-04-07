@@ -51,4 +51,24 @@ final class DrupaleasyRepositoriesPluginManagerTest extends KernelTestBase {
     $this->assertTrue((string) $plugin_def['label'] === 'Remote .yml file', 'The "Label value is not correct.');
   }
 
+  /**
+   * Test callback.
+   */
+  public function testGithubInstance(): void {
+    /** @var \Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesPluginBase $github_instance */
+    $github_instance = $this->manager->createInstance('github');
+    $plugin_def = $github_instance->getPluginDefinition();
+
+    $this->assertInstanceOf('\Drupal\drupaleasy_repositories\Plugin\DrupaleasyRepositories\Github', $github_instance);
+    $this->assertInstanceOf('\Drupal\drupaleasy_repositories\DrupaleasyRepositories\DrupaleasyRepositoriesPluginBase', $github_instance);
+    $this->assertArrayHasKey('label', $plugin_def);
+    $this->assertTrue((string) $plugin_def['label'] === 'GitHub');
+
+    $this->assertArrayHasKey('description', $plugin_def);
+    $this->assertTrue((string) $plugin_def['description'] === 'GitHub.com');
+
+    $this->assertArrayHasKey('url_help_text', $plugin_def);
+    $this->assertTrue((string) $plugin_def['url_help_text'] === 'https://github.com/vendor/name');
+  }
+
 }

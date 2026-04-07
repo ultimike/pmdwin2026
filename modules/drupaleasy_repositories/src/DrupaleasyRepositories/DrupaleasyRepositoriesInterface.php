@@ -41,10 +41,12 @@ interface DrupaleasyRepositoriesInterface {
    *
    * @param string $uri
    *   The URI for the respository.
+   * @param Object $client
+   *   The repository client helper class.
    *
    * @return array<string, array<string, string|int>>
    *   An array of repository metadata.
    */
-  public function getRepo(string $uri): array;
+  public function getRepo(string $uri, Object $client): array;
 
 }

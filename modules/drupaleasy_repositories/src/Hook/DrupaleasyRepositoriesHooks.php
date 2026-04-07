@@ -2,18 +2,63 @@
 
 namespace Drupal\drupaleasy_repositories\Hook;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Render\Element;
-// Use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;.
+use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Queue\QueueFactory;
 use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 
 /**
  * Hook implementations for drupal.
  */
 class DrupaleasyRepositoriesHooks {
   use StringTranslationTrait;
+
+  public function __construct(
+    protected readonly DrupaleasyRepositoriesService $repositoriesService,
+    protected readonly MessengerInterface $messenger,
+    protected readonly EntityTypeManagerInterface $entityTypeManager,
+    protected readonly QueueFactory $queue,
+  ) {}
+
+  /**
+   * Implements hook_user_login().
+   */
+  #[Hook('user_login')]
+  public function userLogin(UserInterface $account): void {
+    if ($this->repositoriesService->updateRepositories($account)) {
+      $this->messenger->addStatus($this->t('Your repository nodes have been updated. (oo)'));
+    }
+  }
+
+  /**
+   * Implements hook_cron().
+   */
+  #[Hook('cron')]
+  public function cron(): void {
+    // Update repository nodes once/day between 1-2am GMT (assumes cron runs
+    // every hour.)
+    $hour = (int) (time() / 3600) % 24;
+    if ($hour === 1) {
+      // Use entity query to get a list of active users with non-null
+      // field_repository_url values.
+      $query = $this->entityTypeManager->getStorage('user')->getQuery();
+      $query->condition('status', 1);
+      $query->condition('field_repository_url', 0, 'IS NOT NULL');
+      $users = $query->accessCheck(FALSE)->execute();
+
+      // Create a Queue item for each user.
+      $queue = $this->queue->get('drupaleasy_repositories_node_updater');
+      foreach ($users as $uid) {
+        $queue->createItem(['uid' => $uid]);
+      }
+    }
+  }
 
   /**
    * Implements hook_form_FORM_ID_alter().

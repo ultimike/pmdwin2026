@@ -22,13 +22,6 @@ use Github\AuthMethod;
 final class Github extends DrupaleasyRepositoriesPluginBase {
 
   /**
-   * The KnpLabs GitHub client used to make API calls.
-   *
-   * @var \Github\Client
-   */
-  protected Client $client;
-
-  /**
    * {@inheritdoc}
    */
   public function validate(string $uri): bool {
@@ -39,18 +32,23 @@ final class Github extends DrupaleasyRepositoriesPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function getRepo(string $uri): array {
+  public function getRepo(string $uri, ?Object $client = NULL): array {
     // Parse $uri for vendor and name.
     $all_parts = parse_url($uri);
     $path_parts = explode('/', $all_parts['path']);
 
-    // Set up authentication.
-    $this->setAuthentication();
+    // Check if $client is instantiated, if not, do it.
+    if ((!$client) || (!$client->isInstanceOf('Github\Client'))) {
+      $client = new Client();
+
+      // Set up authentication.
+      $client = $this->setAuthentication($client);
+    }
 
     // Make the API call and get the metadata.
     try {
       /** @var \Github\Api\Repo $repo */
-      $repo = $this->client->api('repo');
+      $repo = $client->api('repo');
       $repo_metadata = $repo->show($path_parts[1], $path_parts[2]);
     }
     catch (\Throwable $th) {
@@ -73,15 +71,15 @@ final class Github extends DrupaleasyRepositoriesPluginBase {
   /**
    * Add GitHub authentication info to $client object.
    */
-  protected function setAuthentication(): void {
-    $this->client = new Client();
-
+  protected function setAuthentication(Client $client): Client {
     $github_key = $this->keyRepository->getKey('github')->getKeyValues();
 
     // The authenticate() method does not actually call the GitHub API,
     // rather it only stores the authentication info in $this->client for use
     // when $this->client makes an API call that requires authentication.
-    $this->client->authenticate($github_key['username'], $github_key['personal_access_token'], AuthMethod::CLIENT_ID);
+    $client->authenticate($github_key['username'], $github_key['personal_access_token'], AuthMethod::CLIENT_ID);
+
+    return $client;
   }
 
 }
