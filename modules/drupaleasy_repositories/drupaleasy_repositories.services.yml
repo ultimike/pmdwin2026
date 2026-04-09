@@ -17,3 +17,7 @@ services:
   Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks:
     class: Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks
     autowire: TRUE
+
+  drupaleasy_repositories.batch:
+    class: Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch
+    arguments: ['@drupaleasy_repositories.service', '@entity_type.manager', '@extension.list.module']
