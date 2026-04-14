@@ -26,6 +26,7 @@ final class AddYmlRepoTest extends BrowserTestBase {
    */
   protected static $modules = [
     'drupaleasy_repositories',
+    'drupaleasy_notify',
   ];
 
   /**
@@ -215,6 +216,7 @@ final class AddYmlRepoTest extends BrowserTestBase {
     // Ensure no errors.
     $session->statusCodeEquals(200);
     $session->responseContains('The changes have been saved.');
+    $session->responseContains('The repo named The Batman repository has been added (/node/1.) The repo node is owned by ' . $user->getAccountName() . ' (' . $user->id() . '.)');
 
     // Find the new repository node.
     $query = \Drupal::entityQuery('node');
@@ -233,6 +235,7 @@ final class AddYmlRepoTest extends BrowserTestBase {
     // Ensure no errors.
     $session->statusCodeEquals(200);
     $session->responseContains('The changes have been saved.');
+    $session->responseContains('The repo named The Batman repository has been deleted (/node/1.) The repo node is owned by ' . $user->getAccountName() . ' (' . $user->id() . '.)');
 
     // Confirm there are no repository nodes.
     $query = \Drupal::entityQuery('node');

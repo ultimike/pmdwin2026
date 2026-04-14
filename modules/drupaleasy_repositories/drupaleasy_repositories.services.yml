@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 parameters:
   drupaleasy_repositories.dry_run: false
 
@@ -11,7 +12,7 @@ services:
     # The logger.factory dependency was added by Mike on Feb 24 on-the-fly as an
     # example. This dependency is not in the handout. Additional dependencies to
     # be added to this service class should be added after it.
-    arguments: ['@plugin.manager.drupaleasy_repositories', '@config.factory', '@logger.factory', '@entity_type.manager', '%drupaleasy_repositories.dry_run%']
+    arguments: ['@plugin.manager.drupaleasy_repositories', '@config.factory', '@logger.factory', '@entity_type.manager', '@queue', '@event_dispatcher', '%drupaleasy_repositories.dry_run%']
   Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService: '@drupaleasy_repositories.service'
 
   Drupal\drupaleasy_repositories\Hook\DrupaleasyRepositoriesHooks:

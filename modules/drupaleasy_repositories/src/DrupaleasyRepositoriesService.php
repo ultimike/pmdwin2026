@@ -10,7 +10,11 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\drupaleasy_repositories\Event\RepoUpdatedEvent;
+use Drupal\node\NodeInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * DrupalEasy Repositories main service class.
@@ -29,6 +33,10 @@ final class DrupaleasyRepositoriesService {
    *   The Drupal core logger factory.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The Drupal core entity type manager service.
+   * @param \Drupal\Core\Queue\QueueFactory $queue
+   *   The Drupal core queue factory (manager) service.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
+   *   The Drupal core event dispatcher service.
    * @param bool $dryRun
    *   When TRUE, do not save or delete nodes.
    */
@@ -37,6 +45,8 @@ final class DrupaleasyRepositoriesService {
     protected ConfigFactoryInterface $configFactory,
     protected LoggerChannelFactoryInterface $loggerFactory,
     protected EntityTypeManagerInterface $entityTypeManager,
+    protected QueueFactory $queue,
+    protected EventDispatcherInterface $eventDispatcher,
     protected bool $dryRun = FALSE,
   ) {}
 
@@ -259,6 +269,7 @@ final class DrupaleasyRepositoriesService {
           $node->set('field_hash', $hash);
           if (!$this->dryRun) {
             $node->save();
+            $this->repoUpdated($node, 'updated');
           }
         }
       }
@@ -277,6 +288,7 @@ final class DrupaleasyRepositoriesService {
         ]);
         if (!$this->dryRun) {
           $node->save();
+          $this->repoUpdated($node, 'added');
         }
       }
     }
@@ -312,10 +324,43 @@ final class DrupaleasyRepositoriesService {
       foreach ($nodes as $node) {
         if (!$this->dryRun) {
           $node->delete();
+          $this->repoUpdated($node, 'deleted');
         }
       }
     }
     return TRUE;
+  }
+
+  /**
+   * Create queue items for each user.
+   */
+  public function createQueueItems(): void {
+    // Use entity query to get a list of active users with non-null
+    // field_repository_url values.
+    $query = $this->entityTypeManager->getStorage('user')->getQuery();
+    $query->condition('status', 1);
+    $query->condition('field_repository_url', 0, 'IS NOT NULL');
+    $users = $query->accessCheck(FALSE)->execute();
+
+    // Create a Queue item for each user.
+    $queue = $this->queue->get('drupaleasy_repositories_node_updater');
+    foreach ($users as $uid) {
+      $queue->createItem(['uid' => $uid]);
+    }
+  }
+
+  /**
+   * Dispatch an event whenever a node is changed.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The node that was affected.
+   * @param string $action
+   *   The action taken on the node.
+   */
+  protected function repoUpdated(NodeInterface $node, string $action): void {
+    // Create an event.
+    $event = new RepoUpdatedEvent($node, $action);
+    $this->eventDispatcher->dispatch($event);
   }
 
 }

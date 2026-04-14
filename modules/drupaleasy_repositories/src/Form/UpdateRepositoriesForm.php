@@ -9,6 +9,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;
+use Drupal\queue_ui\QueueUIBatchInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,7 +24,8 @@ final class UpdateRepositoriesForm extends FormBase {
     return new static(
       $container->get('drupaleasy_repositories.service'),
       $container->get('drupaleasy_repositories.batch'),
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('queue_ui.batch')
     );
   }
 
@@ -36,11 +38,14 @@ final class UpdateRepositoriesForm extends FormBase {
    *   The DrupalEasy repositories batch service class.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The Drupal core entity type manager.
+   * @param \Drupal\queue_ui\QueueUIBatchInterface $queueUIBatch
+   *   The Drupal contrib module Queue UI Batch service class.
    */
   public function __construct(
     protected DrupaleasyRepositoriesService $repositoriesService,
     protected DrupaleasyRepositoriesBatch $repositoriesBatch,
     protected EntityTypeManagerInterface $entityTypeManager,
+    protected QueueUIBatchInterface $queueUIBatch,
   ) {}
 
   /**
@@ -88,7 +93,13 @@ final class UpdateRepositoriesForm extends FormBase {
     }
     else {
       // Create the batch and submit for processing.
-      $this->repositoriesBatch->updateAllRepositories();
+      //$this->repositoriesBatch->updateAllRepositories();
+
+      $this->repositoriesService->createQueueItems();
+      //$this->messenger()->addMessage($this->t('Queue items have been created, please go to the <a href=":url">Queue manager</a> to process them.', [':url' => '/admin/config/system/queue-ui']));
+
+      // Call Queue UI Batch to run the queue items as a batch process.
+      $this->queueUIBatch->batch(['drupaleasy_repositories_node_updater']);
     }
   }
 

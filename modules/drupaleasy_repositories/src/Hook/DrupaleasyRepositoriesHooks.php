@@ -45,18 +45,7 @@ class DrupaleasyRepositoriesHooks {
     // every hour.)
     $hour = (int) (time() / 3600) % 24;
     if ($hour === 1) {
-      // Use entity query to get a list of active users with non-null
-      // field_repository_url values.
-      $query = $this->entityTypeManager->getStorage('user')->getQuery();
-      $query->condition('status', 1);
-      $query->condition('field_repository_url', 0, 'IS NOT NULL');
-      $users = $query->accessCheck(FALSE)->execute();
-
-      // Create a Queue item for each user.
-      $queue = $this->queue->get('drupaleasy_repositories_node_updater');
-      foreach ($users as $uid) {
-        $queue->createItem(['uid' => $uid]);
-      }
+      $this->repositoriesService->createQueueItems();
     }
   }
 

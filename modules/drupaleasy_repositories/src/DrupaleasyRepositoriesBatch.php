@@ -35,30 +35,31 @@ final class DrupaleasyRepositoriesBatch {
    * Updates all user repositories using Batch API.
    */
   public function updateAllRepositories(): void {
-    $operations = [];
+    // $operations = [];
     // Get a list of all active users with field_repository_url data.
     $query = $this->entityTypeManager->getStorage('user')->getQuery();
     $query->condition('status', 1);
     $query->condition('field_repository_url', 0, 'IS NOT NULL');
     $users = $query->accessCheck(FALSE)->execute();
 
-    // $batch_builder = (new BatchBuilder())
-    //   ->setTitle($this->t('Update all repository nodes'))
-    //   ->setFinishCallback('drupaleasy_update_all_repositories_finished')
-    //   ->setInitMessage($this->t('Here we go!'))
-    //   ->setFile($this->extensionListModule->getPath('drupaleasy_repositories') . '/drupaleasy_repositories.batch.inc');
+    $batch_builder = (new BatchBuilder())
+      ->setTitle($this->t('Update all repository nodes'))
+      // setFile() needs to come before setFinishCallback!!!!!
+      ->setFile($this->extensionListModule->getPath('drupaleasy_repositories') . '/drupaleasy_repositories.batch.inc')
+      ->setFinishCallback('drupaleasy_update_all_repositories_finished')
+      ->setInitMessage($this->t('Here we go!'));
 
     foreach ($users as $user) {
-      $operations[] = ['drupaleasy_update_repositories_batch_operation', [$user]];
-      //$batch_builder->addOperation('drupaleasy_update_repositories_batch_operation', [$user]);
+      // $operations[] = ['drupaleasy_update_repositories_batch_operation', [$user]];
+      $batch_builder->addOperation('drupaleasy_update_repositories_batch_operation', [$user]);
     }
 
-    $batch = [
-      'operations' => $operations,
-      'finished' => 'drupaleasy_update_all_repositories_finished',
-      'file' => $this->extensionListModule->getPath('drupaleasy_repositories') . '/drupaleasy_repositories.batch.inc',
-    ];
-    //$batch = $batch_builder->toArray();
+    // $batch = [
+    //   'operations' => $operations,
+    //   'finished' => 'drupaleasy_update_all_repositories_finished',
+    //   'file' => $this->extensionListModule->getPath('drupaleasy_repositories') . '/drupaleasy_repositories.batch.inc',
+    // ];
+    $batch = $batch_builder->toArray();
 
     batch_set($batch);
   }
