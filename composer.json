@@ -32,7 +32,8 @@
         "drupaleasy/drupaleasy_repositories": "^1.0"
     },
     "conflict": {
-        "drupal/drupal": "*"
+        "drupal/drupal": "*",
+        "drush/drush": "<13.7"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
