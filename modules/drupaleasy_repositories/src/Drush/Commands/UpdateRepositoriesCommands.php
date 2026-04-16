@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Drupal\drupaleasy_repositories\Drush\Commands;
 
 use Consolidation\OutputFormatters\FormatterManager;
-use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch;
@@ -98,8 +97,37 @@ final class UpdateRepositoriesCommands extends Command {
    *   The text to be output by the command.
    */
   protected function doExecute(InputInterface $input, OutputInterface $output): string {
-    $this->logger->debug('Hello from your custom Drush command.');
-    return 'Hey now.';
+    $uid = NULL;
+    $raw_uid = $input->getOption('uid');
+    if (!is_null($raw_uid)) {
+      $uid = (int) $raw_uid;
+    }
+    if ($uid > 0) {
+      $account = $this->entityTypeManager->getStorage('user')->load($uid);
+      if ($account) {
+        // Update the user's repository nodes directly.
+        $this->repositoriesService->updateRepositories($account);
+        return (string) dt('Repositories for uid=@uid updated.', ['@uid' => $uid]);
+      }
+      $this->logger->error(dt('uid=@uid doesn\'t exist.', ['@uid' => $raw_uid]));
+      return '';
+    }
+
+    if ($uid === 0) {
+      $this->logger->error(dt('Invalid uid=@uid provided.', ['@uid' => $raw_uid]));
+      return '';
+    }
+
+    // Create the batch and submit for processing.
+    $this->batch->updateAllRepositories(TRUE);
+
+    //$this->repositoriesService->createQueueItems();
+    //$this->messenger()->addMessage($this->t('Queue items have been created, please go to the <a href=":url">Queue manager</a> to process them.', [':url' => '/admin/config/system/queue-ui']));
+
+    // Call Queue UI Batch to run the queue items as a batch process.
+    //$this->queueUIBatch->batch(['drupaleasy_repositories_node_updater']);
+
+    return 'Multiple repositories updated.';
   }
 
 }
