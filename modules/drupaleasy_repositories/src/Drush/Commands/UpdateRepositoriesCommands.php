@@ -6,7 +6,6 @@ namespace Drupal\drupaleasy_repositories\Drush\Commands;
 
 use Consolidation\OutputFormatters\FormatterManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Utility\Token;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch;
 use Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService;
 use Drush\Attributes as CLI;
@@ -18,6 +17,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Drupal\queue_ui\QueueUIBatch;
 
 /**
  * Custom Drush (Symfony) command to update DrupalEasy repositories.
@@ -38,26 +38,26 @@ final class UpdateRepositoriesCommands extends Command {
   /**
    * Constructs an UpdateRepositories object.
    *
-   * @param \Drupal\Core\Utility\Token $token
-   *   The Drupal core token service.
+   * @param \Consolidation\OutputFormatters\FormatterManager $formatterManager
+   *   The formatter manager.
    * @param \Psr\Log\LoggerInterface $logger
    *   The Psr logger service.
-   * @param \Consolidation\OutputFormatters\FormatterManager $formatterManager
-   *   The Formatter manager service.
    * @param \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesService $repositoriesService
    *   The DrupalEasy repositories general service class.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The Drupal core entity type manager service.
    * @param \Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch $batch
    *   The DrupalEasy repositories batch service class.
+   * @param \Drupal\queue_ui\QueueUIBatch $queueUiBatch
+   *   The Queue UI contrib module service class.
    */
   public function __construct(
-    private readonly Token $token,
-    private readonly LoggerInterface $logger,
     private readonly FormatterManager $formatterManager,
+    private readonly LoggerInterface $logger,
     private readonly DrupaleasyRepositoriesService $repositoriesService,
     private readonly EntityTypeManagerInterface $entityTypeManager,
-    private readonly DrupaleasyRepositoriesBatch $batch,
+    //private readonly DrupaleasyRepositoriesBatch $batch,
+    private readonly QueueUIBatch $queueUiBatch,
   ) {
     parent::__construct();
   }
@@ -119,13 +119,14 @@ final class UpdateRepositoriesCommands extends Command {
     }
 
     // Create the batch and submit for processing.
-    $this->batch->updateAllRepositories(TRUE);
+    //$this->batch->updateAllRepositories(TRUE);
 
-    //$this->repositoriesService->createQueueItems();
-    //$this->messenger()->addMessage($this->t('Queue items have been created, please go to the <a href=":url">Queue manager</a> to process them.', [':url' => '/admin/config/system/queue-ui']));
-
+    // Create queue items.
+    $this->repositoriesService->createQueueItems();
     // Call Queue UI Batch to run the queue items as a batch process.
-    //$this->queueUIBatch->batch(['drupaleasy_repositories_node_updater']);
+    $this->queueUiBatch->batch(['drupaleasy_repositories_node_updater']);
+    // Ask Drush to process the batch.
+    drush_backend_batch_process();
 
     return 'Multiple repositories updated.';
   }

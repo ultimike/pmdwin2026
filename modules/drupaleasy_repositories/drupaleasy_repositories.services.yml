@@ -23,3 +23,5 @@ services:
     class: Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch
     arguments: ['@drupaleasy_repositories.service', '@entity_type.manager', '@extension.list.module']
   Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch: '@drupaleasy_repositories.batch'
+
+  Drupal\queue_ui\QueueUIBatch: '@queue_ui.batch'

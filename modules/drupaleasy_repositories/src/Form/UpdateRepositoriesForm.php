@@ -96,7 +96,6 @@ final class UpdateRepositoriesForm extends FormBase {
       //$this->repositoriesBatch->updateAllRepositories();
 
       $this->repositoriesService->createQueueItems();
-      //$this->messenger()->addMessage($this->t('Queue items have been created, please go to the <a href=":url">Queue manager</a> to process them.', [':url' => '/admin/config/system/queue-ui']));
 
       // Call Queue UI Batch to run the queue items as a batch process.
       $this->queueUIBatch->batch(['drupaleasy_repositories_node_updater']);
