@@ -25,3 +25,9 @@ services:
   Drupal\drupaleasy_repositories\DrupaleasyRepositoriesBatch: '@drupaleasy_repositories.batch'
 
   Drupal\queue_ui\QueueUIBatch: '@queue_ui.batch'
+
+  drupaleasy_repositories.uninstall_validator:
+    class: Drupal\drupaleasy_repositories\DrupaleasyRepositoriesUninstallValidator
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: module_install.uninstall_validator }

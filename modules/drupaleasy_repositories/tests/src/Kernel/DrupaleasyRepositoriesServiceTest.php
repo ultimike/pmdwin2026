@@ -31,6 +31,7 @@ final class DrupaleasyRepositoriesServiceTest extends KernelTestBase {
     'link',
     'text',
     'key',
+    'queue_ui',
   ];
 
   /**

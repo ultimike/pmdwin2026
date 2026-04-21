@@ -2,5 +2,54 @@
 
 /**
  * @file
+ */
+
+declare(strict_types=1);
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\node\Entity\NodeType;
+
+/**
+ * @file
  * Install, update and uninstall functions for the DrupalEasy repositories module.
  */
+
+/**
+ * Implements hook_install().
+ */
+function drupaleasy_repositories_install(bool $is_syncing): void {
+  if (!$is_syncing) {
+    // Ensure that the new Repository URL field is visible in the existing
+    // user entity form mode.
+    /** @var \Drupal\Core\Entity\EntityDisplayRepository $entity_display_repository  */
+    $entity_display_repository = \Drupal::service('entity_display.repository');
+    $entity_display_repository->getFormDisplay('user', 'user', 'default')
+      ->setComponent('field_repository_url', ['type' => 'link_default', 'weight' => -1000])
+      ->removeComponent('user_picture')
+      ->save();
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function drupaleasy_repositories_uninstall(): void {
+  FieldStorageConfig::loadByName('user', 'field_repository_url')->delete();
+  \Drupal::messenger()->addStatus(t('The Repository URL field on the user entity has been deleted.'));
+  NodeType::load('repository')->delete();
+  \Drupal::messenger()->addStatus(t('The Repository content type has been deleted.'));
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function drupaleasy_repositories_update_9000(): string {
+  return 'Nothing to see here';
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function drupaleasy_repositories_update_9001(): string {
+  return 'Even less to see here';
+}

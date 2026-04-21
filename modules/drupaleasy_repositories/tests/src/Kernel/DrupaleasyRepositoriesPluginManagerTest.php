@@ -20,6 +20,7 @@ final class DrupaleasyRepositoriesPluginManagerTest extends KernelTestBase {
   protected static $modules = [
     'drupaleasy_repositories',
     'key',
+    'queue_ui',
   ];
 
   /**

@@ -27,6 +27,7 @@ final class AddYmlRepoTest extends BrowserTestBase {
   protected static $modules = [
     'drupaleasy_repositories',
     'drupaleasy_notify',
+    'queue_ui',
   ];
 
   /**
