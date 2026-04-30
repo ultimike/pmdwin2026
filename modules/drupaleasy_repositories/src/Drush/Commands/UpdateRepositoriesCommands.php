@@ -18,6 +18,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Drupal\queue_ui\QueueUIBatch;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 
 /**
  * Custom Drush (Symfony) command to update DrupalEasy repositories.
@@ -50,6 +51,8 @@ final class UpdateRepositoriesCommands extends Command {
    *   The DrupalEasy repositories batch service class.
    * @param \Drupal\queue_ui\QueueUIBatch $queueUiBatch
    *   The Queue UI contrib module service class.
+   * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cacheInvalidator
+   *   The Drupal core cache invalidator service.
    */
   public function __construct(
     private readonly FormatterManager $formatterManager,
@@ -58,6 +61,7 @@ final class UpdateRepositoriesCommands extends Command {
     private readonly EntityTypeManagerInterface $entityTypeManager,
     //private readonly DrupaleasyRepositoriesBatch $batch,
     private readonly QueueUIBatch $queueUiBatch,
+    private readonly CacheTagsInvalidatorInterface $cacheInvalidator,
   ) {
     parent::__construct();
   }
@@ -127,6 +131,13 @@ final class UpdateRepositoriesCommands extends Command {
     $this->queueUiBatch->batch(['drupaleasy_repositories_node_updater']);
     // Ask Drush to process the batch.
     drush_backend_batch_process();
+
+    $this->cacheInvalidator->invalidateTags(['drupaleasy_repositories']);
+
+    // This is how you do it from a non-OO hook implementation.
+    /** @var \Drupal\Core\Cache\CacheTagsInvalidator $cacheInvalidator2 */
+//    $cacheInvalidator2 = \Drupal::service('cache_tags.invalidator');
+//    $cacheInvalidator2->invalidateTags(['drupaleasy_repositories']);
 
     return 'Multiple repositories updated.';
   }
