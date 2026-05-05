@@ -80,7 +80,7 @@ final class MyRepositoriesStatsBlock extends BlockBase implements ContainerFacto
       ],
     ];
     $build['#cache'] = [
-      'max-age' => Cache::PERMANENT,
+      'max-age' => 0,
       'tags' => ['node_list:repository', 'drupaleasy_repositories'],
       'contexts' => ['user'],
     ];
@@ -106,7 +106,7 @@ final class MyRepositoriesStatsBlock extends BlockBase implements ContainerFacto
    * {@inheritdoc}
    */
   public function getCacheMaxAge(): int {
-    return Cache::PERMANENT;
+    return 0;
   }
 
   /**
@@ -119,6 +119,7 @@ final class MyRepositoriesStatsBlock extends BlockBase implements ContainerFacto
    *   The total number of issues.
    */
   protected function calculateTotalIssues(int|null $uid = NULL): int {
+    usleep(3000000);
     $return = 0;
     $node_storage = $this->entityTypeManager->getStorage('node');
     $query = $node_storage->getQuery();
